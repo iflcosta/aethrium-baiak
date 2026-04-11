@@ -311,18 +311,23 @@ enum SpeakClasses : uint8_t
 	TALKTYPE_MONSTER_YELL = 20,
 };
 
+// MessageClasses values remapped for OTClient/Redemption protocol 8.60 (mehah client, >= 861 map).
+// Client map (protocolcodes.cpp >= 861):
+//   15=Warning(red screen), 16=Game(white center), 17=Login(white bottom),
+//   18=Status(white Server Log), 19=Look(green screen), 20=Failure(status bar, no console),
+//   21=Blue(Local Chat blue), 22=Red(Local Chat red)
 enum MessageClasses : uint8_t
 {
-	MESSAGE_STATUS_CONSOLE_RED = 18,    /*Red message in the console*/
-	MESSAGE_EVENT_ORANGE = 19,          /*Orange message in the console*/
-	MESSAGE_STATUS_CONSOLE_ORANGE = 20, /*Orange message in the console*/
-	MESSAGE_STATUS_WARNING = 21,        /*Red message in game window and in the console*/
-	MESSAGE_EVENT_ADVANCE = 22,         /*White message in game window and in the console*/
-	MESSAGE_EVENT_DEFAULT = 23,         /*White message at the bottom of the game window and in the console*/
-	MESSAGE_STATUS_DEFAULT = 24,        /*White message at the bottom of the game window and in the console*/
-	MESSAGE_INFO_DESCR = 25,            /*Green message in game window and in the console*/
-	MESSAGE_STATUS_SMALL = 26,          /*White message at the bottom of the game window"*/
-	MESSAGE_STATUS_CONSOLE_BLUE = 27,   /*FIXME Blue message in the console*/
+	MESSAGE_STATUS_CONSOLE_RED = 22,    /*Red message in Local Chat (MessageRed=22)*/
+	MESSAGE_EVENT_ORANGE = 28,          /*Orange message in Local Chat (MessageBarkLow=28)*/
+	MESSAGE_STATUS_CONSOLE_ORANGE = 28, /*Orange message in Local Chat (MessageBarkLow=28)*/
+	MESSAGE_STATUS_WARNING = 15,        /*Red message in center screen + Server Log (MessageWarning=15)*/
+	MESSAGE_EVENT_ADVANCE = 16,         /*White center screen + Server Log (MessageGame=16)*/
+	MESSAGE_EVENT_DEFAULT = 17,         /*White bottom screen + Server Log (MessageLogin=17)*/
+	MESSAGE_STATUS_DEFAULT = 18,        /*White Server Log status (MessageStatus=18)*/
+	MESSAGE_INFO_DESCR = 19,            /*Green center screen + Server Log (MessageLook=19)*/
+	MESSAGE_STATUS_SMALL = 20,          /*White status bar, no console (MessageFailure=20)*/
+	MESSAGE_STATUS_CONSOLE_BLUE = 21,   /*Blue Local Chat (MessageBlue=21)*/
 };
 
 enum FluidColors_t : uint8_t

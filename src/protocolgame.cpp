@@ -3044,6 +3044,41 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
 			msg.add<uint16_t>(static_cast<uint16_t>(std::min<int32_t>(10000, player->varSpecialSkills[i])));
 			msg.add<uint16_t>(0);
 		}
+
+		// Redemption client (mehah) expects Fatal, Dodge, Momentum, Transcendence
+		// after the standard special skills. These are derived from equipped item tiers.
+		// Values are sent as uint16_t (chance * 100, e.g. 9.5% -> 950).
+		if (isMehah) {
+			// Fatal: weapon tier
+			uint16_t fatalValue = 0;
+			if (Item* weapon = player->getWeapon()) {
+				fatalValue = static_cast<uint16_t>(std::round(weapon->getFatalChance() * 100.0));
+			}
+			// Dodge: armor tier
+			uint16_t dodgeValue = 0;
+			if (Item* armor = player->getInventoryItem(CONST_SLOT_ARMOR)) {
+				dodgeValue = static_cast<uint16_t>(std::round(armor->getDodgeChance() * 100.0));
+			}
+			// Momentum: boots tier
+			uint16_t momentumValue = 0;
+			if (Item* boots = player->getInventoryItem(CONST_SLOT_FEET)) {
+				momentumValue = static_cast<uint16_t>(std::round(boots->getMomentumChance() * 100.0));
+			}
+			// Transcendence: legs tier
+			uint16_t transcendenceValue = 0;
+			if (Item* legs = player->getInventoryItem(CONST_SLOT_LEGS)) {
+				transcendenceValue = static_cast<uint16_t>(std::round(legs->getTranscendenceChance() * 100.0));
+			}
+
+			msg.add<uint16_t>(fatalValue);
+			msg.add<uint16_t>(0); // base
+			msg.add<uint16_t>(dodgeValue);
+			msg.add<uint16_t>(0); // base
+			msg.add<uint16_t>(momentumValue);
+			msg.add<uint16_t>(0); // base
+			msg.add<uint16_t>(transcendenceValue);
+			msg.add<uint16_t>(0); // base
+		}
 	}
 }
 

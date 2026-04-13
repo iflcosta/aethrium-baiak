@@ -57,7 +57,7 @@ local function grantVipRewards(player, tier)
     local outfits = getAllTierOutfits(tier, isFemale)
     local mounts  = getAllTierMounts(tier)
     for _, looktype in ipairs(outfits) do
-        player:addOutfit(looktype)
+        player:addOutfitAddon(looktype, 3)
     end
     for _, mountId in ipairs(mounts) do
         player:addMount(mountId)

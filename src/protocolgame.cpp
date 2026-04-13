@@ -3281,6 +3281,16 @@ void ProtocolGame::sendNewPing(uint32_t pingId)
 	writeToOutputBuffer(msg);
 }
 
+void ProtocolGame::sendExtendedOpcode(uint8_t opcode, std::string_view buffer)
+{
+	// Opcode 0x32 (50) = GameServerExtendedOpcode in OTClient
+	NetworkMessage msg;
+	msg.addByte(0x32);
+	msg.addByte(opcode);
+	msg.addString(buffer);
+	writeToOutputBuffer(msg);
+}
+
 void ProtocolGame::parseNewPing(NetworkMessage& msg)
 {
 	uint32_t pingId = msg.get<uint32_t>();

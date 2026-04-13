@@ -216,6 +216,31 @@ public:
 	void setResetCount(uint32_t count);
 	double getResetExpReduction() const;
 
+	// Reset system — level requirements & overshoot
+	uint32_t getResetRequiredLevel() const;
+	uint32_t getResetXPCap() const;
+	double getOvershootBonus() const;
+
+	// Reset system — bonus stats
+	int32_t getResetBonusHP() const { return resetBonusHP; }
+	int32_t getResetBonusMana() const { return resetBonusMana; }
+	int32_t getResetBonusCap() const { return resetBonusCap; }
+
+	// Reset system — sealed skills
+	bool isSkillSealed(uint8_t skillId) const;
+	void sealSkill(uint8_t skillId);
+	void clearSealedSkills();
+	uint32_t getSealedSkillsMask() const { return sealedSkillsMask; }
+
+	// VIP system
+	bool isVip() const;
+	uint8_t getVipTier() const { return vipTier; }
+	int64_t getVipExpires() const { return vipExpires; }
+	int32_t getVipDaysRemaining() const;
+	void setVip(uint8_t tier, int32_t days);
+	int32_t getVipXpBonus() const;   // returns 0, 10, 20 or 30
+	int32_t getVipLootBonus() const; // returns 0, 10, 15 or 25
+
 	OperatingSystem_t getOperatingSystem() const { return operatingSystem; }
 	void setOperatingSystem(OperatingSystem_t clientos) { operatingSystem = clientos; }
 
@@ -964,6 +989,14 @@ public:
 			client->sendSkills();
 		}
 	}
+	void sendExtendedOpcode(uint8_t opcode, std::string_view buffer) const
+	{
+		if (client) {
+			if (auto proto = client->protocol()) {
+				proto->sendExtendedOpcode(opcode, buffer);
+			}
+		}
+	}
 	void sendTextMessage(MessageClasses mclass, std::string_view message) const
 	{
 		if (client) {
@@ -1315,7 +1348,11 @@ private:
 	uint32_t conditionImmunities = 0;
 	uint32_t conditionSuppressions = 0;
 	uint32_t level = 1;
-	uint32_t reset = 0; // reset system
+	uint32_t reset = 0;           // reset count
+	int32_t resetBonusHP   = 0;   // accumulated HP bonus from all resets
+	int32_t resetBonusMana = 0;   // accumulated Mana bonus from all resets
+	int32_t resetBonusCap  = 0;   // accumulated Cap bonus from all resets
+	uint32_t sealedSkillsMask = 0; // bitmask: bit N = skill N protected from redux
 	uint32_t magLevel = 0;
 	uint32_t actionTaskEvent = 0;
 	uint32_t nextStepEvent = 0;

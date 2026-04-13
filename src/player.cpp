@@ -4209,33 +4209,106 @@ Skulls_t Player::getSkull() const
 
 void Player::doReset() // reset system
 {
-	++reset;
-	uint32_t bonusReset = reset * getInteger(ConfigManager::RESET_STATBONUS);
-	capacity += bonusReset;
+	// ── Vocation bonus tables ─────────────────────────────────
+	// [vocationId % 4]: 1=Sorcerer,2=Druid,3=Paladin,0=Knight  (promotions mod same)
+	// Index into tier: reset 1-2 = tier 0, reset 3-4 = tier 1, reset 5+ = tier 2
+	struct VocBonus { int32_t hp, mana, cap; };
+	static const VocBonus KNIGHT_BONUS[3]  = {{200,50,1000},{250,75,1250},{300,100,1500}};
+	static const VocBonus PALADIN_BONUS[3] = {{150,150,750},{175,175,875},{200,200,1000}};
+	static const VocBonus SORC_BONUS[3]    = {{50,300,500},{75,350,600},{100,400,750}};
+	static const VocBonus DRUID_BONUS[3]   = {{75,250,500},{100,300,600},{125,350,750}};
+	static const VocBonus MONK_BONUS[3]    = {{150,150,750},{175,175,875},{200,200,1000}};
 
-	// Reset to level 8 stats
-	experience = Player::getExpForLevel(8);
-	level = 8;
-	levelPercent = 0;
+	uint32_t nextReset = reset + 1; // the reset being performed (1-indexed)
+	int32_t tier = (nextReset <= 2) ? 0 : (nextReset <= 4 ? 1 : 2);
 
+	uint32_t vocId = vocation ? vocation->getId() : 0;
+	uint32_t baseVoc = vocId % 4; // strip promotion: 0=none/knight,1=sorc,2=druid,3=paladin
+	// Monk vocations: check by name or id range — use id 5-6 (Monk/Exalted Monk) if defined
+	bool isMonk = (vocId == 5 || vocId == 6);
+
+	VocBonus bonus = {0, 0, 0};
+	if (isMonk) {
+		bonus = MONK_BONUS[tier];
+	} else if (baseVoc == 0) { // Knight / Elite Knight
+		bonus = KNIGHT_BONUS[tier];
+	} else if (baseVoc == 1) { // Sorcerer / Master Sorcerer
+		bonus = SORC_BONUS[tier];
+	} else if (baseVoc == 2) { // Druid / Elder Druid
+		bonus = DRUID_BONUS[tier];
+	} else if (baseVoc == 3) { // Paladin / Royal Paladin
+		bonus = PALADIN_BONUS[tier];
+	}
+
+	resetBonusHP   += bonus.hp;
+	resetBonusMana += bonus.mana;
+	resetBonusCap  += bonus.cap;
+
+	// ── Apply redux to skills ─────────────────────────────────
 	if (getBoolean(ConfigManager::RESET_SKILLS)) {
-		magLevel = 0;
-		magLevelPercent = 0;
-		manaSpent = 0;
+		double redux = (nextReset >= 10) ? 0.50 : 0.30;
 
 		for (int i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
-			skills[i].level = 10;
-			skills[i].tries = 0;
+			if (isSkillSealed(static_cast<uint8_t>(i))) {
+				continue; // protected
+			}
+			int32_t reduced = static_cast<int32_t>(std::floor(skills[i].level * (1.0 - redux)));
+			skills[i].level  = static_cast<uint32_t>(std::max<int32_t>(10, reduced));
+			skills[i].tries  = 0;
 			skills[i].percent = 0;
+		}
+
+		// Magic level (minimum 0)
+		if (!isSkillSealed(12)) {
+			int32_t reducedML = static_cast<int32_t>(std::floor(magLevel * (1.0 - redux)));
+			magLevel        = static_cast<uint32_t>(std::max<int32_t>(0, reducedML));
+			magLevelPercent = 0;
+			manaSpent       = 0;
 		}
 	}
 
-	health = getMaxHealth();
-	mana = getMaxMana();
+	clearSealedSkills();
 
-	// Persist immediately
-	Database::getInstance().executeQuery(
-		fmt::format("UPDATE `players` SET `reset` = {:d} WHERE `id` = {:d}", reset, getGUID()));
+	// ── Reset level & base stats ─────────────────────────────
+	experience   = Player::getExpForLevel(8);
+	level        = 8;
+	levelPercent = 0;
+
+	// Recalculate healthMax/manaMax/capacity from scratch:
+	// base (new player config) + vocation gains for levels 1→8 + accumulated reset bonuses
+	int32_t baseHP   = ConfigManager::getInteger(ConfigManager::NEW_PLAYER_HEALTH);
+	int32_t baseMana = ConfigManager::getInteger(ConfigManager::NEW_PLAYER_MANA);
+	uint32_t baseCap = static_cast<uint32_t>(ConfigManager::getInteger(ConfigManager::NEW_PLAYER_CAP)) * 100;
+	int32_t newPlayerLevel = ConfigManager::getInteger(ConfigManager::NEW_PLAYER_LEVEL);
+
+	if (vocation) {
+		// Gains from level newPlayerLevel up to level 8
+		int32_t levelsGained = std::max<int32_t>(0, 8 - newPlayerLevel);
+		baseHP   += levelsGained * static_cast<int32_t>(vocation->getHPGain());
+		baseMana += levelsGained * static_cast<int32_t>(vocation->getManaGain());
+		baseCap  += static_cast<uint32_t>(levelsGained) * vocation->getCapGain();
+	}
+
+	healthMax = baseHP   + resetBonusHP;
+	manaMax   = baseMana + resetBonusMana;
+	capacity  = baseCap  + static_cast<uint32_t>(resetBonusCap) * 100;
+
+	++reset;
+
+	// ── Persist ───────────────────────────────────────────────
+	Database::getInstance().executeQuery(fmt::format(
+		"UPDATE `players` SET `reset` = {:d}, `reset_bonus_hp` = {:d}, "
+		"`reset_bonus_mana` = {:d}, `reset_bonus_cap` = {:d}, `sealed_skills` = 0, "
+		"`healthmax` = {:d}, `manamax` = {:d}, `cap` = {:d}, "
+		"`level` = 8, `experience` = {:d} "
+		"WHERE `id` = {:d}",
+		reset, resetBonusHP, resetBonusMana, resetBonusCap,
+		healthMax, manaMax, capacity / 100,
+		experience, getGUID()));
+
+	// ── Refresh stats ─────────────────────────────────────────
+	health = getMaxHealth();
+	mana   = getMaxMana();
 
 	sendStats();
 	sendSkills();
@@ -6366,6 +6439,55 @@ double Player::getResetExpReduction() const
 	int32_t reductionPerReset = ConfigManager::getInteger(ConfigManager::RESET_REDUCTION_PERCENTAGE);
 	double multiplier = 1.0 - (static_cast<double>(reset * reductionPerReset) / 100.0);
 	return std::max<double>(0.1, multiplier);
+}
+
+uint32_t Player::getResetRequiredLevel() const
+{
+	// Levels required per reset number (1-indexed: index 0 = 1st reset)
+	static const uint32_t REQUIRED[] = {500, 600, 700, 800, 900, 1000};
+	uint32_t idx = std::min<uint32_t>(reset, 5); // reset is current count; next reset needs index = reset
+	return REQUIRED[idx];
+}
+
+uint32_t Player::getResetXPCap() const
+{
+	uint32_t req = getResetRequiredLevel();
+	double mult = (reset >= 9) ? 1.5 : 1.3;
+	return static_cast<uint32_t>(req * mult);
+}
+
+double Player::getOvershootBonus() const
+{
+	uint32_t req = getResetRequiredLevel();
+	uint32_t lv  = level;
+	if (lv <= req) {
+		return 0.0;
+	}
+	double overshoot = static_cast<double>(lv - req) / static_cast<double>(req);
+	// +10% bonus per 10% overshoot, capped at 30% (resets 1-9) or 50% (reset 10+)
+	double maxBonus = (reset >= 9) ? 0.5 : 0.3;
+	double steps = std::floor(overshoot / 0.10);
+	return std::min(steps * 0.10, maxBonus);
+}
+
+bool Player::isSkillSealed(uint8_t skillId) const
+{
+	return (sealedSkillsMask & (1u << skillId)) != 0;
+}
+
+void Player::sealSkill(uint8_t skillId)
+{
+	sealedSkillsMask |= (1u << skillId);
+	Database::getInstance().executeQuery(
+		fmt::format("UPDATE `players` SET `sealed_skills` = {:d} WHERE `id` = {:d}",
+		            sealedSkillsMask, getGUID()));
+}
+
+void Player::clearSealedSkills()
+{
+	sealedSkillsMask = 0;
+	Database::getInstance().executeQuery(
+		fmt::format("UPDATE `players` SET `sealed_skills` = 0 WHERE `id` = {:d}", getGUID()));
 }
 
 void Player::applyOfflineTraining(uint32_t trainingTime)

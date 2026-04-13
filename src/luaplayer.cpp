@@ -3011,6 +3011,116 @@ int luaPlayerSetReset(lua_State* L)
 	return 1;
 }
 
+int luaPlayerSendExtendedOpcode(lua_State* L)
+{
+	// player:sendExtendedOpcode(opcode, buffer)
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		uint8_t opcode = getNumber<uint8_t>(L, 2);
+		std::string buffer = getString(L, 3);
+		player->sendExtendedOpcode(opcode, buffer);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetResetRequiredLevel(lua_State* L)
+{
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->getResetRequiredLevel());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetResetXPCap(lua_State* L)
+{
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->getResetXPCap());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetOvershootBonus(lua_State* L)
+{
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushnumber(L, player->getOvershootBonus());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetResetBonusStats(lua_State* L)
+{
+	// returns hp, mana, cap (three values)
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->getResetBonusHP());
+		lua_pushinteger(L, player->getResetBonusMana());
+		lua_pushinteger(L, player->getResetBonusCap());
+		return 3;
+	}
+	lua_pushnil(L);
+	return 1;
+}
+
+int luaPlayerIsSkillSealed(lua_State* L)
+{
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		uint8_t skillId = getNumber<uint8_t>(L, 2);
+		pushBoolean(L, player->isSkillSealed(skillId));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerSealSkill(lua_State* L)
+{
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		uint8_t skillId = getNumber<uint8_t>(L, 2);
+		player->sealSkill(skillId);
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerClearSealedSkills(lua_State* L)
+{
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		player->clearSealedSkills();
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetSealedSkillsMask(lua_State* L)
+{
+	Player* player = getUserdata<Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->getSealedSkillsMask());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 int luaPlayerReloadWarList(lua_State* L)
 {
 	// player:reloadWarList()
@@ -3554,6 +3664,15 @@ void LuaScriptInterface::registerPlayer()
 	registerMethod("Player", "getReset", luaPlayerGetReset);
 	registerMethod("Player", "doReset", luaPlayerDoReset);
 	registerMethod("Player", "setReset", luaPlayerSetReset);
+	registerMethod("Player", "sendExtendedOpcode", luaPlayerSendExtendedOpcode);
+	registerMethod("Player", "getResetRequiredLevel", luaPlayerGetResetRequiredLevel);
+	registerMethod("Player", "getResetXPCap", luaPlayerGetResetXPCap);
+	registerMethod("Player", "getOvershootBonus", luaPlayerGetOvershootBonus);
+	registerMethod("Player", "getResetBonusStats", luaPlayerGetResetBonusStats);
+	registerMethod("Player", "isSkillSealed", luaPlayerIsSkillSealed);
+	registerMethod("Player", "sealSkill", luaPlayerSealSkill);
+	registerMethod("Player", "clearSealedSkills", luaPlayerClearSealedSkills);
+	registerMethod("Player", "getSealedSkillsMask", luaPlayerGetSealedSkillsMask);
 	registerMethod("Player", "reloadWarList", luaPlayerReloadWarList);
 
 	// OfflinePlayer

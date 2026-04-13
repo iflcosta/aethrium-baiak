@@ -273,6 +273,7 @@ private:
 	void sendFeatures();
 	void sendNewPing(uint32_t pingId);
 	void parseNewPing(NetworkMessage& msg);
+	void sendExtendedOpcode(uint8_t opcode, std::string_view buffer);
 
 	friend class Player;
 	friend class ProtocolSpectator;

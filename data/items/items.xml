@@ -5651,6 +5651,7 @@
 		<attribute key="weight" value="10" />
 	</item>
 	<item id="3031" article="a" name="gold coin">
+		<attribute key="type" value="key" />
 		<attribute key="weight" value="10" />
 		<attribute key="worth" value="1" />
 		<attribute key="description" value="Use to change denominations." />
@@ -5666,6 +5667,7 @@
 		<attribute key="weight" value="20" />
 	</item>
 	<item id="3035" article="a" name="platinum coin">
+		<attribute key="type" value="key" />
 		<attribute key="weight" value="10" />
 		<attribute key="worth" value="100" />
 		<attribute key="description" value="Use to change denominations." />
@@ -5692,6 +5694,7 @@
 		<attribute key="weight" value="20" />
 	</item>
 	<item id="3043" article="a" name="crystal coin">
+		<attribute key="type" value="key" />
 		<attribute key="weight" value="10" />
 		<attribute key="worth" value="10000" />
 		<attribute key="description" value="Use to change denominations." />

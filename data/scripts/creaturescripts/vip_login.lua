@@ -10,7 +10,7 @@ local VIP_OUTFITS = {
     [2] = { 268, 432, 465, 884, 899 },          -- Silver: Nightmare, Elementalist, Insectoid, Arena Champion, Lupine Warden
     [3] = { 541, 512, 665, 667, 846, 1202,      -- Gold: Demon, Crystal Warlord, Chaos Acolyte, Death Herald, Rift Warrior,
             1444, 1489, 1675, 1680, 1713,        --       Void Master, Dragon Knight, Ghost Blade, Darklight Evoker, Flamefury Mage,
-            1725, 1745, 1809, 1831, 1825 },      --       Doom Knight, Celestial Avenger, Blade Dancer, Fiend Slayer, Winged Druid, Monk
+            1725, 1745, 1809, 1831, 1824 },      --       Doom Knight, Celestial Avenger, Blade Dancer, Fiend Slayer, Winged Druid, Monk
 }
 
 -- Female looktypes (same order as male)
@@ -19,7 +19,7 @@ local VIP_OUTFITS_FEMALE = {
     [2] = { 269, 433, 466, 885, 900 },
     [3] = { 542, 513, 664, 666, 845, 1203,
             1445, 1490, 1676, 1681, 1714,
-            1726, 1746, 1808, 1832, 1824 },
+            1726, 1746, 1808, 1832, 1825 },
 }
 
 -- Standard premium outfits that should get addons for VIP players

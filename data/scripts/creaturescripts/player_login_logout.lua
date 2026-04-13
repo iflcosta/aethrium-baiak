@@ -54,10 +54,11 @@ function loginMessage.onLogin(player)
     player:updateStamina()
 
     player:registerEvent("logoutMessage")
+    player:registerEvent("ResetOpcodeHandler")
 
     player:openChannel(10)
 
-    if configManager.getBoolean(RESET_SYSTEM_ENABLED) then
+    if configManager.getBoolean("resetSystemEnabled") then
         local reductionMultiplier = player:getResetExpReduction()
         player:setExperienceRate(ExperienceRateType.STAMINA, reductionMultiplier * 100)
     end

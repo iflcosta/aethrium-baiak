@@ -27,7 +27,26 @@ event.onDropLoot = function(self, corpse)
 
 		for roll = 1, rolls do
 			for i = 1, #monsterLoot do
-				local item = corpse:createLootItem(monsterLoot[i])
+				local lootBlock = monsterLoot[i]
+				local chance = lootBlock.chance
+				if player then
+					local lootBonus = player:getVipLootBonus()
+					if lootBonus > 0 then
+						chance = math.floor(chance * (1 + lootBonus / 100))
+					end
+				end
+
+				local item = corpse:createLootItem({
+					itemId = lootBlock.itemId,
+					chance = chance,
+					subType = lootBlock.subType,
+					minCount = lootBlock.minCount,
+					maxCount = lootBlock.maxCount,
+					actionId = lootBlock.actionId,
+					uniqueId = lootBlock.uniqueId,
+					text = lootBlock.text,
+					childLoot = lootBlock.childLoot
+				})
 				if not item then
 					print("[Warning] DropLoot:", "Could not add loot item to corpse.")
 				end

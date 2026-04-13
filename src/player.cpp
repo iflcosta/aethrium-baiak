@@ -4509,6 +4509,56 @@ bool Player::isPremium() const
 
 void Player::setPremiumTime(time_t premiumEndsAt) { this->premiumEndsAt = premiumEndsAt; }
 
+bool Player::isVip() const
+{
+	return vipTier > 0 && vipExpires > time(nullptr);
+}
+
+int32_t Player::getVipDaysRemaining() const
+{
+	if (!isVip()) {
+		return 0;
+	}
+	return static_cast<int32_t>(std::ceil((vipExpires - time(nullptr)) / 86400.0));
+}
+
+void Player::setVip(uint8_t tier, int32_t days)
+{
+	int64_t now = time(nullptr);
+	if (isVip()) {
+		vipExpires += static_cast<int64_t>(days) * 86400;
+	} else {
+		vipExpires = now + static_cast<int64_t>(days) * 86400;
+	}
+	vipTier = tier;
+}
+
+int32_t Player::getVipXpBonus() const
+{
+	if (!isVip()) {
+		return 0;
+	}
+	switch (vipTier) {
+		case 1: return 10;
+		case 2: return 20;
+		case 3: return 30;
+		default: return 0;
+	}
+}
+
+int32_t Player::getVipLootBonus() const
+{
+	if (!isVip()) {
+		return 0;
+	}
+	switch (vipTier) {
+		case 1: return 10;
+		case 2: return 15;
+		case 3: return 25;
+		default: return 0;
+	}
+}
+
 PartyShields_t Player::getPartyShield(const Player* player) const
 {
 	if (!player) {

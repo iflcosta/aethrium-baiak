@@ -1423,6 +1423,10 @@ private:
 	uint64_t m_serene_cooldown = 0;
 	VirtueMonk_t m_virtue = VIRTUE_NONE;
 
+	// VIP System
+	uint8_t vipTier = 0;
+	int64_t vipExpires = 0;
+
 	AccountManagerMode accountManager{ACCOUNT_MANAGER_NONE};
 	std::array<bool, 15> managerTalkState{};
 	struct

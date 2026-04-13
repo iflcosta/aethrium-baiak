@@ -276,7 +276,7 @@ bool IOLoginData::loadPlayerById(Player* player, uint32_t id)
 	return loadPlayer(
 	    player,
 	    db.storeQuery(fmt::format(
-	        "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `reset`, `reset_bonus_hp`, `reset_bonus_mana`, `reset_bonus_cap`, `sealed_skills`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `lookmount`, `currentmount`, `randomizemount`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction`, `protection_time`, `offlinetraining_time`, `offlinetraining_skill`, `token_protected`, `token_hash` FROM `players` WHERE `id` = {:d}",
+	        "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `reset`, `reset_bonus_hp`, `reset_bonus_mana`, `reset_bonus_cap`, `sealed_skills`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `lookmount`, `currentmount`, `randomizemount`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction`, `protection_time`, `offlinetraining_time`, `offlinetraining_skill`, `token_protected`, `token_hash`, `vip_tier`, `vip_expires` FROM `players` WHERE `id` = {:d}",
 	        id)));
 }
 
@@ -286,7 +286,7 @@ bool IOLoginData::loadPlayerByName(Player* player, std::string_view name)
 	return loadPlayer(
 	    player,
 	    db.storeQuery(fmt::format(
-	        "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `reset`, `reset_bonus_hp`, `reset_bonus_mana`, `reset_bonus_cap`, `sealed_skills`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `lookmount`, `currentmount`, `randomizemount`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction`, `protection_time`, `offlinetraining_time`, `offlinetraining_skill`, `token_protected`, `token_hash` FROM `players` WHERE `name` = {:s}",
+	        "SELECT `id`, `name`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, `reset`, `reset_bonus_hp`, `reset_bonus_mana`, `reset_bonus_cap`, `sealed_skills`, `maglevel`, `health`, `healthmax`, `blessings`, `mana`, `manamax`, `manaspent`, `soul`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `lookmount`, `currentmount`, `randomizemount`, `posx`, `posy`, `posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skulltime`, `skull`, `town_id`, `balance`, `stamina`, `skill_fist`, `skill_fist_tries`, `skill_club`, `skill_club_tries`, `skill_sword`, `skill_sword_tries`, `skill_axe`, `skill_axe_tries`, `skill_dist`, `skill_dist_tries`, `skill_shielding`, `skill_shielding_tries`, `skill_fishing`, `skill_fishing_tries`, `direction`, `protection_time`, `offlinetraining_time`, `offlinetraining_skill`, `token_protected`, `token_hash`, `vip_tier`, `vip_expires` FROM `players` WHERE `name` = {:s}",
 	        db.escapeString(name))));
 }
 
@@ -442,6 +442,9 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
 
 	player->setTokenProtected(result->getNumber<uint8_t>("token_protected") != 0);
 	player->setTokenHash(result->getString("token_hash"));
+
+	player->vipTier = result->getNumber<uint8_t>("vip_tier");
+	player->vipExpires = result->getNumber<int64_t>("vip_expires");
 
 	auto town = g_game.map.towns.getSharedTown(result->getNumber<uint32_t>("town_id"));
 	if (!town) {
@@ -1051,7 +1054,9 @@ bool IOLoginData::savePlayer(Player* player)
 	}
 	query << "`blessings` = " << player->blessings.to_ulong() << ',';
 	query << "`token_protected` = " << (player->isTokenProtected() ? 1 : 0) << ',';
-	query << "`token_hash` = " << db.escapeString(player->getTokenHash());
+	query << "`token_hash` = " << db.escapeString(player->getTokenHash()) << ',';
+	query << "`vip_tier` = " << static_cast<uint16_t>(player->vipTier) << ',';
+	query << "`vip_expires` = " << player->vipExpires;
 	query << " WHERE `id` = " << player->getGUID();
 
 	DBTransaction transaction;

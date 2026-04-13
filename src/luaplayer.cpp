@@ -1877,6 +1877,94 @@ int luaPlayerSetPremiumEndsAt(lua_State* L)
 	return 1;
 }
 
+int luaPlayerIsVip(lua_State* L)
+{
+	// player:isVip()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (player) {
+		pushBoolean(L, player->isVip());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetVipTier(lua_State* L)
+{
+	// player:getVipTier()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->getVipTier());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetVipExpires(lua_State* L)
+{
+	// player:getVipExpires()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->getVipExpires());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetVipDaysRemaining(lua_State* L)
+{
+	// player:getVipDaysRemaining()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->getVipDaysRemaining());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerSetVip(lua_State* L)
+{
+	// player:setVip(tier, days)
+	Player* player = getUserdata<Player>(L, 1);
+	if (!player) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	uint8_t tier = getInteger<uint8_t>(L, 2);
+	int32_t days = getInteger<int32_t>(L, 3);
+	player->setVip(tier, days);
+	pushBoolean(L, true);
+	return 1;
+}
+
+int luaPlayerGetVipXpBonus(lua_State* L)
+{
+	// player:getVipXpBonus()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->getVipXpBonus());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int luaPlayerGetVipLootBonus(lua_State* L)
+{
+	// player:getVipLootBonus()
+	const Player* player = getUserdata<const Player>(L, 1);
+	if (player) {
+		lua_pushinteger(L, player->getVipLootBonus());
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 int luaPlayerHasBlessing(lua_State* L)
 {
 	// player:hasBlessing(blessing)
@@ -3528,6 +3616,13 @@ void LuaScriptInterface::registerPlayer()
 
 	registerMethod("Player", "getPremiumEndsAt", luaPlayerGetPremiumEndsAt);
 	registerMethod("Player", "setPremiumEndsAt", luaPlayerSetPremiumEndsAt);
+	registerMethod("Player", "isVip", luaPlayerIsVip);
+	registerMethod("Player", "getVipTier", luaPlayerGetVipTier);
+	registerMethod("Player", "getVipExpires", luaPlayerGetVipExpires);
+	registerMethod("Player", "getVipDaysRemaining", luaPlayerGetVipDaysRemaining);
+	registerMethod("Player", "setVip", luaPlayerSetVip);
+	registerMethod("Player", "getVipXpBonus", luaPlayerGetVipXpBonus);
+	registerMethod("Player", "getVipLootBonus", luaPlayerGetVipLootBonus);
 
 	registerMethod("Player", "hasBlessing", luaPlayerHasBlessing);
 	registerMethod("Player", "addBlessing", luaPlayerAddBlessing);

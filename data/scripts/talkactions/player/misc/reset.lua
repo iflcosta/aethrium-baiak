@@ -119,7 +119,11 @@ local function onExtendedOpcode(player, opcode, buffer)
         player:sendExtendedOpcode(RESET_OPCODE, json.encode(buildOpenData(player)))
 
     elseif data.action == "confirm" then
-        if not configManager.getBoolean(RESET_SYSTEM_ENABLED) then
+        print("[Debug] Reset confirmation received for " .. player:getName())
+
+        local enabled = configManager.getBoolean("resetSystemEnabled")
+        if not enabled then
+            print("[Debug] Reset system is DISABLED in config.")
             player:sendExtendedOpcode(RESET_OPCODE, json.encode({
                 action  = "error",
                 message = "The reset system is currently disabled.",
@@ -128,7 +132,10 @@ local function onExtendedOpcode(player, opcode, buffer)
         end
 
         local requiredLvl = player:getResetRequiredLevel()
+        print("[Debug] Player Level: " .. player:getLevel() .. " | Required: " .. requiredLvl)
+
         if player:getLevel() < requiredLvl then
+            print("[Debug] Level insufficient. Sending error packet.")
             player:sendExtendedOpcode(RESET_OPCODE, json.encode({
                 action  = "error",
                 message = "You need level " .. requiredLvl .. " to perform this reset.",
@@ -167,14 +174,39 @@ creatureEvent:register()
 local talk = TalkAction("!reset")
 
 function talk.onSay(player, words, param)
-    if not configManager.getBoolean(RESET_SYSTEM_ENABLED) then
+    print("[Debug] !reset command triggered for " .. player:getName())
+
+    if not json then
+        print("[Error] JSON library not found!")
+        player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Error: JSON library not found.")
+        return false
+    end
+
+    -- Fix: Use string key if constant is not defined
+    local enabled = configManager.getBoolean("resetSystemEnabled")
+    if not enabled then
         player:sendCancelMessage("The reset system is currently disabled.")
         player:getPosition():sendMagicEffect(CONST_ME_POFF)
         return false
     end
 
-    -- Send open packet; client shows the modal
-    player:sendExtendedOpcode(RESET_OPCODE, json.encode(buildOpenData(player)))
+    local status, data = pcall(buildOpenData, player)
+    if not status then
+        print("[Error] Failed to build reset data: " .. tostring(data))
+        player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Error: Internal script error.")
+        return false
+    end
+
+    local ok, encoded = pcall(json.encode, data)
+    if not ok then
+        print("[Error] JSON encoding failed: " .. tostring(encoded))
+        player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Error: JSON encoding failed.")
+        return false
+    end
+
+    print("[Debug] Sending Reset Opcode 180: " .. encoded)
+    player:sendExtendedOpcode(RESET_OPCODE, encoded)
+    player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, "Reset menu request sent.")
     return false
 end
 

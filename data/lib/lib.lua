@@ -1,4 +1,5 @@
 -- Core API functions implemented in Lua
+json = dofile('data/lib/json.lua')
 dofile('data/lib/core/core.lua')
 
 -- Monk Harmony System

@@ -10,7 +10,7 @@ local VIP_OUTFITS = {
     [2] = { 268, 432, 465, 884, 899 },          -- Silver: Nightmare, Elementalist, Insectoid, Arena Champion, Lupine Warden
     [3] = { 541, 512, 665, 667, 846, 1202,      -- Gold: Demon, Crystal Warlord, Chaos Acolyte, Death Herald, Rift Warrior,
             1444, 1489, 1675, 1680, 1713,        --       Void Master, Dragon Knight, Ghost Blade, Darklight Evoker, Flamefury Mage,
-            1725, 1745, 1809, 1831 },            --       Doom Knight, Celestial Avenger, Blade Dancer, Fiend Slayer, Winged Druid
+            1725, 1745, 1809, 1831, 1825 },      --       Doom Knight, Celestial Avenger, Blade Dancer, Fiend Slayer, Winged Druid, Monk
 }
 
 -- Female looktypes (same order as male)
@@ -19,8 +19,12 @@ local VIP_OUTFITS_FEMALE = {
     [2] = { 269, 433, 466, 885, 900 },
     [3] = { 542, 513, 664, 666, 845, 1203,
             1445, 1490, 1676, 1681, 1714,
-            1726, 1746, 1808, 1832 },
+            1726, 1746, 1808, 1832, 1824 },
 }
+
+-- Standard premium outfits that should get addons for VIP players
+local PREMIUM_STANDARD_OUTFITS_MALE = { 128, 129, 130, 131, 132, 133, 134, 143, 144, 145, 146 }
+local PREMIUM_STANDARD_OUTFITS_FEMALE = { 136, 137, 138, 139, 140, 141, 142, 147, 148, 149, 150 }
 
 -- Mount IDs (server mount id from mounts.xml)
 local VIP_MOUNTS = {
@@ -56,9 +60,18 @@ local function grantVipRewards(player, tier)
     local isFemale = player:getSex() == PLAYERSEX_FEMALE
     local outfits = getAllTierOutfits(tier, isFemale)
     local mounts  = getAllTierMounts(tier)
+    
+    -- Standard premium outfits that get addons
+    local standardOutfits = isFemale and PREMIUM_STANDARD_OUTFITS_FEMALE or PREMIUM_STANDARD_OUTFITS_MALE
+    for _, looktype in ipairs(standardOutfits) do
+        player:addOutfitAddon(looktype, 3)
+    end
+
+    -- VIP-specific outfits (also with addons)
     for _, looktype in ipairs(outfits) do
         player:addOutfitAddon(looktype, 3)
     end
+
     for _, mountId in ipairs(mounts) do
         player:addMount(mountId)
     end

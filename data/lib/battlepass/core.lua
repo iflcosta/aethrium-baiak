@@ -36,6 +36,9 @@ local function grantReward(player, reward)
 
     elseif reward.type == "outfit" then
         player:addOutfit(reward.id)
+        if reward.addons and reward.addons > 0 then
+            player:addOutfitAddon(reward.id, reward.addons)
+        end
 
     elseif reward.type == "mount" then
         player:addMount(reward.id)
@@ -186,6 +189,25 @@ function BattlePass.claimReward(player, tier, track)
 end
 
 -- ============================================================
+-- Helpers de Tibia Coins (znote_accounts.points)
+-- ============================================================
+
+local function getZnoteCoins(accountId)
+    local resultId = db.storeQuery(
+        "SELECT `points` FROM `znote_accounts` WHERE `account_id` = " .. accountId)
+    if not resultId then return 0 end
+    local coins = result.getDataInt(resultId, "points")
+    result.free(resultId)
+    return coins
+end
+
+local function deductZnoteCoins(accountId, amount)
+    db.query(
+        "UPDATE `znote_accounts` SET `points` = `points` - " .. amount ..
+        " WHERE `account_id` = " .. accountId)
+end
+
+-- ============================================================
 -- Compra do Elite Pass
 -- ============================================================
 
@@ -208,14 +230,16 @@ function BattlePass.buyElite(player)
         cost = math.floor(cost * (100 - discount) / 100)
     end
 
-    local account = player:getAccount()
-    if account:getCoins() < cost then
+    local accountId = player:getAccountId()
+    local balance   = getZnoteCoins(accountId)
+
+    if balance < cost then
         player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE,
             string.format("[Battle Pass] Tibia Coins insuficientes. Necessario: %d TC.", cost))
         return false
     end
 
-    account:removeCoins(cost)
+    deductZnoteCoins(accountId, cost)
     data.elite = true
     BattlePass.saveData(player, data)
 

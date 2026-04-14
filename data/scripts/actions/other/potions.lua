@@ -145,6 +145,7 @@ function potionsAction.onUse(player, item, fromPosition, target, toPosition, isH
 		player:addCondition(potion.condition)
 		player:say(potion.text, TALKTYPE_MONSTER_SAY)
 		player:getPosition():sendMagicEffect(potion.effect)
+		BattlePass.updateDailyTask(player, "use_item", 1)
 
 	elseif potion.transform then
 		local reward = potion.transform[math.random(#potion.transform)]
@@ -179,6 +180,7 @@ function potionsAction.onUse(player, item, fromPosition, target, toPosition, isH
 		player:addAchievementProgress("Potion Addict", 100000)
 		target:say("Aaaah...", TALKTYPE_MONSTER_SAY)
 		target:getPosition():sendMagicEffect(CONST_ME_MAGIC_BLUE)
+		BattlePass.updateDailyTask(player, "use_item", 1)
 	end
 
 	if not configManager.getBoolean(configKeys.REMOVE_POTION_CHARGES) then

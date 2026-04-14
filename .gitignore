@@ -194,6 +194,7 @@ pip-log.txt
 ## TFS / OT
 #############
 config.lua
+!data/lib/battlepass/config.lua
 
 # Ignorar ejecutable principal en linux
 tfs

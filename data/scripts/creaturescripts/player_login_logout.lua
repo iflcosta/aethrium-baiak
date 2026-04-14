@@ -55,6 +55,7 @@ function loginMessage.onLogin(player)
 
     player:registerEvent("logoutMessage")
     player:registerEvent("ResetOpcodeHandler")
+    player:registerEvent("BattlePassOnKill")
 
     player:openChannel(10)
 

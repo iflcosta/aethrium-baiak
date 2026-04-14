@@ -39,6 +39,10 @@ GlobalStorageKeys = {
     workbenchOwner = 30051,
     boostedCreatureIndex = 90001,
     boostedCreatureDay = 90002,
+
+    -- Battle Pass
+    battlepassSeason  = 90010,
+    battlepassExpires = 90011,
 }
 
 AccountStorageKeys = {}

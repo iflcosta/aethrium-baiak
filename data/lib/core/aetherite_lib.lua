@@ -230,13 +230,41 @@ function AetheriteSystem.craftItem(player, recipeId)
     if math.random(1, 100) <= successChance then
         local newItem = player:addItem(recipe.resultId, 1)
         if newItem then
+            -- DYNAMIC SCALING (Based on User Proposal)
+            local targetSlots = 0
+            local classification = 4
+            
+            if recipe.tier == 1 then
+                targetSlots = math.max(2, newItem:getType():getImbuementSlot()) -- Tier 1: Min 2 slots
+                classification = 4
+            elseif recipe.tier == 2 then
+                targetSlots = 3 -- Tier 2: Force 3 slots
+                classification = 5
+            elseif recipe.tier == 3 then
+                targetSlots = 4 -- Tier 3: Force 4 slots
+                classification = 6
+            end
+
+            -- Apply Slots
+            local currentSlots = newItem:getImbuementSlots()
+            if targetSlots > currentSlots then
+                newItem:addImbuementSlots(targetSlots - currentSlots)
+            end
+
+            -- Apply Classification
+            newItem:setAttribute(ITEM_ATTRIBUTE_CLASSIFICATION, classification)
+
+            -- MASTERWORKED LOGIC
             local mwChance = recipe.mwChance + (craftingLvl * 0.1)
+            -- Tier 3 items have higher base MW chance
+            if recipe.tier == 3 then mwChance = mwChance + 10 end
+
             if math.random(1, 100) <= mwChance then
                 newItem:setAttribute(ITEM_ATTRIBUTE_MASTERWORKED, 1)
-                player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "CRAFT SUCESSO! Voc criou um item MASTERWORKED!")
+                player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "CRAFT SUCESSO! Você criou um item MASTERWORKED!")
                 player:getPosition():sendMagicEffect(CONST_ME_MAGIC_PURPLE)
             else
-                player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "CRAFT SUCESSO! Voc criou: " .. recipe.name)
+                player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "CRAFT SUCESSO! Você criou: " .. recipe.name)
                 player:getPosition():sendMagicEffect(CONST_ME_MAGIC_GREEN)
             end
             
